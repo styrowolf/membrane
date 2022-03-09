@@ -420,6 +420,27 @@ dev_dependencies:
   ffigen: ^4.1.0
 "#;
       std::fs::write(path, pubspec + extra_deps).expect("pubspec could not be written");
+    } else {
+      let pubspec = format!(r#"
+name: {}
+description: A simple command-line application.
+version: 1.0.0
+# homepage: https://www.example.com
+
+environment:
+  sdk: '>=2.15.1 <3.0.0'
+
+
+dependencies:
+  ffi: ^1.1.2
+  logging: ^1.0.2
+
+dev_dependencies:
+  lints: ^1.0.0
+  ffigen: ^4.1.0
+
+"#, package_name);
+      std::fs::write(path, pubspec).expect("pubspec could not be written");
     }
 
     self
