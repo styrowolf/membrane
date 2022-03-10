@@ -125,3 +125,10 @@ void main(List<String> arguments) async {
 ```
 
 If you get an error on Linux about not being able to load `libexample.so` then add the pub package's path to `LD_LIBRARY_PATH`.
+
+## TO-DO
+
+* allow returning non-Result types (Option and others)
+* write documentation for the channel feature
+* allow functions which return nothing
+* write a cargo utility to increase ease of use
