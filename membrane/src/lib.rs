@@ -421,7 +421,8 @@ dev_dependencies:
 "#;
       std::fs::write(path, pubspec + extra_deps).expect("pubspec could not be written");
     } else {
-      let pubspec = format!(r#"
+      let pubspec = format!(
+        r#"
 name: {}
 description: A simple command-line application.
 version: 1.0.0
@@ -439,7 +440,9 @@ dev_dependencies:
   lints: ^1.0.0
   ffigen: ^4.1.0
 
-"#, package_name);
+"#,
+        package_name
+      );
       std::fs::write(path, pubspec).expect("pubspec could not be written");
     }
 

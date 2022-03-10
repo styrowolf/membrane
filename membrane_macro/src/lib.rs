@@ -86,7 +86,7 @@ impl Parse for ReprDart {
         output_style,
         output: ret_type,
         error: err_type,
-      })
+      });
     }
 
     if input.peek(Token![async]) {
@@ -239,7 +239,8 @@ pub fn async_dart(attrs: TokenStream, input: TokenStream) -> TokenStream {
   let c_name = extern_c_fn_name.to_string();
   let c_header_types = c_header_types.join(", ");
   let name = fn_name.to_string().to_mixed_case();
-  let is_stream = output_style == OutputStyle::StreamSerialized || output_style == OutputStyle::Channel;
+  let is_stream =
+    output_style == OutputStyle::StreamSerialized || output_style == OutputStyle::Channel;
   let return_type = match &output {
     Expr::Tuple(_expr) => "()".to_string(),
     Expr::Path(expr) => expr.path.segments.last().unwrap().ident.to_string(),
