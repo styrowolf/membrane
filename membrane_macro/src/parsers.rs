@@ -2,6 +2,48 @@ use membrane_types::{syn, OutputStyle};
 use syn::parse::{ParseStream, Result};
 use syn::{Error, Expr, Ident, Path, Token};
 
+struct ReceiverReturnTypeParse((Expr, Path));
+
+impl syn::parse::Parse for ReceiverReturnTypeParse {
+  fn parse(input: ParseStream) -> Result<Self> {
+    let content;
+    syn::parenthesized!(content in input);
+    content.parse::<syn::Type>()?;
+    content.parse::<Token![,]>()?;
+    let outer_span = content.span();
+    match content.parse::<Ident>()? {
+      ident if ident == "Receiver" => (),
+      _ => {
+        return Err(Error::new(outer_span, "expected `Receiver`"));
+      }
+    }
+    content.parse::<Token![<]>()?;
+    let r = parse_type(&content).map(|r| ReceiverReturnTypeParse(r));
+    content.parse::<Token![>]>()?;
+    r
+  }
+}
+
+pub fn parse_channel_return_type(input: ParseStream) -> Result<(OutputStyle, Expr, Path)> {
+  let outer_span = input.span();
+  match input.parse::<Ident>()? {
+    ident if ident == "Lazy" => (),
+    _ => {
+      return Err(Error::new(outer_span, "expected `Lazy`"));
+    }
+  }
+  input.parse::<Token![<]>()?;
+  if input.peek(syn::token::Paren) {
+    use crate::quote::ToTokens;
+    let group = input.parse::<crate::proc_macro2::Group>()?;
+    let mut group_tokens = crate::proc_macro2::TokenStream::new();
+    group.to_tokens(&mut group_tokens);
+    let ReceiverReturnTypeParse((t, e)) = syn::parse2(group_tokens)?;
+    return Ok((OutputStyle::Channel, t, e));
+  }
+  return Err(Error::new(outer_span, "expected `(`"));
+}
+
 pub fn parse_stream_return_type(input: ParseStream) -> Result<(OutputStyle, Expr, Path)> {
   input.parse::<Token![impl]>()?;
   let span = input.span();
@@ -33,7 +75,6 @@ fn parse_type(input: ParseStream) -> Result<(Expr, Path)> {
       return Err(Error::new(outer_span, "expected enum `Result`"));
     }
   }
-
   input.parse::<Token![<]>()?;
 
   let type_span = input.span();
@@ -71,9 +112,7 @@ fn parse_type(input: ParseStream) -> Result<(Expr, Path)> {
       }
     }
   }
-
   let e = input.parse::<Path>()?;
   input.parse::<Token![>]>()?;
-
   Ok((t, e))
 }

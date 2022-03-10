@@ -70,6 +70,25 @@ impl Parse for ReprDart {
     let arg_buffer;
 
     input.parse::<Token![pub]>()?;
+
+    if input.peek(Token![static]) {
+      input.parse::<Token![static]>()?;
+      let ident = input.parse::<Ident>()?;
+      input.parse::<syn::token::Colon>()?;
+      let (output_style, ret_type, err_type) = parsers::parse_channel_return_type(input)?;
+      input.parse::<Token![>]>()?;
+      input.parse::<Token![=]>()?;
+      input.parse::<Expr>()?;
+      input.parse::<Token![;]>()?;
+      return Ok(ReprDart {
+        fn_name: ident,
+        inputs: Vec::new(),
+        output_style,
+        output: ret_type,
+        error: err_type,
+      })
+    }
+
     if input.peek(Token![async]) {
       input.parse::<Token![async]>()?;
     }
@@ -157,6 +176,17 @@ pub fn async_dart(attrs: TokenStream, input: TokenStream) -> TokenStream {
   };
 
   let return_statement = match output_style {
+    OutputStyle::Channel => {
+      quote! {
+        async move {
+          let receiver = #fn_name.1.clone();
+          while let Ok(result) = receiver.recv() {
+              let result: ::std::result::Result<#output, #error> = result;
+              #serializer
+          }
+        }
+      }
+    }
     OutputStyle::StreamSerialized => {
       quote! {
         async move {
@@ -209,7 +239,7 @@ pub fn async_dart(attrs: TokenStream, input: TokenStream) -> TokenStream {
   let c_name = extern_c_fn_name.to_string();
   let c_header_types = c_header_types.join(", ");
   let name = fn_name.to_string().to_mixed_case();
-  let is_stream = output_style == OutputStyle::StreamSerialized;
+  let is_stream = output_style == OutputStyle::StreamSerialized || output_style == OutputStyle::Channel;
   let return_type = match &output {
     Expr::Tuple(_expr) => "()".to_string(),
     Expr::Path(expr) => expr.path.segments.last().unwrap().ident.to_string(),
