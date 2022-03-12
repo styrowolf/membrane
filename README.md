@@ -132,3 +132,6 @@ If you get an error on Linux about not being able to load `libexample.so` then a
 * write documentation for the channel feature
 * allow functions which return nothing
 * write a cargo utility to increase ease of use
+  * maybe a template would be enough: [cargo-generate templates](https://github.com/cargo-generate/cargo-generate/blob/main/TEMPLATES.md)
+* two-way communication support?
+* rename this fork fluidmosaic
