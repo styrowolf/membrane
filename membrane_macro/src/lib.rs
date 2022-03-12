@@ -180,7 +180,7 @@ pub fn async_dart(attrs: TokenStream, input: TokenStream) -> TokenStream {
       quote! {
         async move {
           let receiver = #fn_name.1.clone();
-          while let Ok(result) = receiver.recv() {
+          while let Ok(result) = receiver.recv().await {
               let result: ::std::result::Result<#output, #error> = result;
               #serializer
           }

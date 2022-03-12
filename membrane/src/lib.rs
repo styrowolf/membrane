@@ -565,7 +565,11 @@ DynamicLibrary _open() {{
   }}
   if (Platform.isMacOS) {{
     Logger('membrane').info('Opening native library {lib}.dylib');
-    return DynamicLibrary.open('{lib}.dylib');
+    try {{
+      return DynamicLibrary.open('{lib}.dylib');
+    }} catch (e) {{
+      return DynamicLibrary.executable();
+    }}
   }}
   throw UnsupportedError('This platform is not supported.');
 }}
